@@ -2,6 +2,7 @@ import { Component } from 'final-server'
 import { database } from './config'
 import t from 'flow-runtime'
 import { parse } from 'feedparser-promised'
+import StoryComponent from './Story'
 
 const RssSchema = t.type('Rss',
   t.object(
@@ -13,13 +14,15 @@ const RssSchema = t.type('Rss',
   )
 )
 
+const Story = new StoryComponent()
+
 @database({
   collection: 'Feeds'
 })
-export default class Rss extends Component {
+export default class Feed extends Component {
   path = '/feed/:feed?'
   schema = RssSchema
-  // uniques = ['link']
+  uniques = ['link']
 
   async getFeeds () {
     const feeds = await this.find({ limit: 100 })
@@ -38,8 +41,6 @@ export default class Rss extends Component {
       addmeta: true
     })
 
-    console.log(JSON.stringify(parsedXml[0], null, 2))
-
     const { title, description, link, lastBuildDate, pubDate } = parsedXml[0].meta
 
     const savedRss = await this.save({
@@ -49,6 +50,9 @@ export default class Rss extends Component {
       lastBuildDate,
       pubDate: typeof pubDate === 'object' ? pubDate.toISOString() : pubDate
     })
+
+    this.savedRss = savedRss
+    this.parsedXml = parsedXml
 
     return { data: savedRss }
   }
@@ -60,5 +64,31 @@ export default class Rss extends Component {
     } catch (e) {
       console.error(e)
     }
+  }
+
+  async responseDidEnd () {
+    this.props.response.writeHead(200, {
+      'Content-Type': 'application/json'
+    })
+    this.props.response.end(JSON.stringify(this.state))
+
+    await Promise.all(this.parsedXml.map(async ({ title, description, summary, link, date }) => {
+      try {
+        await Story.save({
+          feed: this.savedRss._id,
+          title,
+          description,
+          summary,
+          link,
+          date: date.toISOString()
+        })
+      } catch (e) {
+        console.error(e.message)
+      }
+
+      return
+    }))
+
+    return
   }
 }
