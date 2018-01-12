@@ -1,0 +1,23 @@
+{
+  "name": "rss",
+  "version": "0.9.0",
+  "description": "RSS reader using Final and ArangoDB",
+  "main": "index.js",
+  "author": "Noah Gray <noahgray@me.com> (oknoah.github.io)",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@babel/core": "^7.0.0-beta.37",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.37",
+    "@babel/preset-env": "^7.0.0-beta.37",
+    "@babel/preset-stage-0": "^7.0.0-beta.37",
+    "feedparser-promised": "^1.5.0",
+    "final-arango": "^0.9.5",
+    "final-server": "^0.9.9"
+  },
+  "devDependencies": {
+    "@babel/register": "^7.0.0-beta.37",
+    "got": "^8.0.1",
+    "tape": "^4.8.0"
+  }
+}
